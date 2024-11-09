@@ -1,0 +1,1 @@
+# Thoth Valorant Event Collector

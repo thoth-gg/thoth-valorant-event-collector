@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="css/style.css" />
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>Demo app</title>
+    <link href="https://fonts.googleapis.com/css?family=Titillium+Web:300,400,600" rel="stylesheet">
+
+    <script>
+      function dragResize(edge){
+        overwolf.windows.getCurrentWindow(function(result){
+          if (result.status=="success"){
+            overwolf.windows.dragResize(result.window.id, edge);
+          }
+        });
+      };
+
+      function dragMove(){
+        overwolf.windows.getCurrentWindow(function(result){
+          if (result.status=="success" && result.window.state !== "Maximized"){
+            overwolf.windows.dragMove(result.window.id);
+          }
+        });
+      };
+
+      function closeWindow(){
+        overwolf.windows.getCurrentWindow(function(result){
+          if (result.status=="success"){
+            overwolf.windows.close(result.window.id);
+          }
+        });
+      };
+
+      function minimize(){
+        overwolf.windows.getCurrentWindow(function(result){
+          if (result.status=="success"){
+            overwolf.windows.minimize(result.window.id);
+          }
+        });
+      };
+
+      const g_interestedInFeatures = [
+        'gep_internal',
+        'match_info',
+        'me',
+        'kill',
+        'death',
+        'game_info',
+      ];
+
+      function toggleMaximize(){
+        let element = document.querySelector('.maximize-restore-selector'),
+            root = document.documentElement;
+
+        overwolf.windows.getCurrentWindow(function(result){
+          if (result.status !== "success") {
+            return;
+          }
+
+          if (element.checked) {
+            overwolf.windows.restore(result.window.id);
+            root.classList.remove('maximized');
+          } else {
+            overwolf.windows.maximize(result.window.id);
+            root.classList.add('maximized');
+          }
+        });
+      };
+
+      function zeroPad(num, places) {
+        return String(num).padStart(places, '0');
+      }
+
+      function getTimestamp() {
+        const date = new Date();
+        return `${zeroPad(date.getHours(), 2)}:${zeroPad(date.getMinutes(), 2)}:${zeroPad(date.getSeconds(), 2)}`;
+      }
+
+      function infoListener(info) {
+        console.log(info);
+        log(`${getTimestamp()} [INFO] ${JSON.stringify(info)}`);
+      }
+
+      function eventListener(info) {
+        console.log(info);
+        log(`${getTimestamp()} [EVENT] ${JSON.stringify(info)}`);
+      }
+
+      function activate() {
+        overwolf.games.events.onInfoUpdates2.removeListener(infoListener);
+        overwolf.games.events.onNewEvents.removeListener(eventListener);
+        overwolf.games.events.setRequiredFeatures(g_interestedInFeatures, function(info) {
+          console.log(info);
+          log(`${getTimestamp()} [SET_FEATURE] ${JSON.stringify(info)}`);
+        });
+        overwolf.games.events.getInfo(function(info) {
+          console.log(info);
+          log(`${getTimestamp()} [CURRENT_INFO] ${JSON.stringify(info)}`);
+        });
+        overwolf.games.events.onInfoUpdates2.addListener(infoListener);
+        overwolf.games.events.onNewEvents.addListener(eventListener);
+      };
+
+      function log(data) {
+        let textarea = document.getElementById('eventLogs');
+        textarea.value += data + '\n';
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="content">
+      <header onmousedown="dragMove();">
+        <div class="window-controls-group">
+          <button class="window-control" onclick="minimize()">
+            <svg class="svg-icon-fill">
+              <use xlink:href="assets/svg/sprite.svg#window-control_minimize" />
+            </svg>
+          </button>
+
+          <button class="window-control" onclick="toggleMaximize()">
+            <input type="checkbox" class="maximize-restore-selector toggle-icons" checked />
+            <svg class="svg-icon-fill svg-icon-restore">
+              <use xlink:href="assets/svg/sprite.svg#window-control_restore" />
+            </svg>
+            <svg class="svg-icon-fill svg-icon-maximize">
+              <use xlink:href="assets/svg/sprite.svg#window-control_maximize" />
+            </svg>
+          </button>
+
+          <button class="window-control window-control-close" onclick="closeWindow();">
+            <svg class="svg-icon-fill">
+              <use xlink:href="assets/svg/sprite.svg#window-control_close" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <div class="title">
+          <img src="assets/logo.png" alt="Thoth" class="logo">
+          <h1>Thoth Valorant Event Collector</h1>
+          <div class="flex">
+            <button class="btn" onclick="activate();">Activate</button>
+            <button class="btn" onclick="location.reload();">Reload</button>
+          </div>
+        </div>
+
+        <h2>Event Logs</h2>
+        <textarea id="eventLogs" readonly></textarea>
+      </main>
+    </div>
+
+    <div class="resize horizontal top" onmousedown="dragResize('Top');"></div>
+    <div class="resize vertical left" onmousedown="dragResize('Left');"></div>
+    <div class="resize vertical right" onmousedown="dragResize('Right');"></div>
+    <div class="resize horizontal bottom" onmousedown="dragResize('Bottom');"></div>
+
+    <div class="resize corner top-left" onmousedown="dragResize('TopLeft');"></div>
+    <div class="resize corner top-right" onmousedown="dragResize('TopRight');"></div>
+    <div class="resize corner bottom-left" onmousedown="dragResize('BottomLeft');"></div>
+    <div class="resize corner bottom-right" onmousedown="dragResize('BottomRight');"></div>
+  </body>
+</html>
