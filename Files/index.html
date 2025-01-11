@@ -77,33 +77,40 @@
       }
 
       function infoListener(info) {
-        console.log(info);
-        log(`${getTimestamp()} [INFO] ${JSON.stringify(info)}`);
+        log("INFO", info);
+        sendServer(info);
       }
 
       function eventListener(info) {
-        console.log(info);
-        log(`${getTimestamp()} [EVENT] ${JSON.stringify(info)}`);
+        log("EVENT", info);
+        sendServer(info);
       }
 
       function activate() {
         overwolf.games.events.onInfoUpdates2.removeListener(infoListener);
         overwolf.games.events.onNewEvents.removeListener(eventListener);
         overwolf.games.events.setRequiredFeatures(g_interestedInFeatures, function(info) {
-          console.log(info);
-          log(`${getTimestamp()} [SET_FEATURE] ${JSON.stringify(info)}`);
+          log("SET_FEATURE", info);
         });
         overwolf.games.events.getInfo(function(info) {
-          console.log(info);
-          log(`${getTimestamp()} [CURRENT_INFO] ${JSON.stringify(info)}`);
+          log("CURRENT_INFO", info);
         });
         overwolf.games.events.onInfoUpdates2.addListener(infoListener);
         overwolf.games.events.onNewEvents.addListener(eventListener);
       };
 
-      function log(data) {
-        let textarea = document.getElementById('eventLogs');
-        textarea.value += data + '\n';
+      function log(tag, data) {
+        document.getElementById('eventLogs').value += `${getTimestamp()} [${tag}] ${JSON.stringify(data)}\n`;
+      }
+
+      function sendServer(data) {
+        fetch("http://192.168.100.9:9090/api/observer", {
+          method: "post",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify(data)
+        })
       }
     </script>
   </head>
